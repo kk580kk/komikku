@@ -105,8 +105,14 @@
     <string name="pref_use_last_used_category_on_add">使用上次使用的分类</string>
     <string name="pref_use_last_used_category_on_add_description">添加漫画到书架时自动使用上次选择的分类</string>
     <string name="pref_import_local_downloads">导入本地下载</string>
-    <string name="pref_import_local_downloads_summary">扫描下载目录并添加漫画到书架（保留元数据）</string>
-    <string name="pref_import_local_downloads_description">这将扫描本地下载目录并自动将所有找到的漫画添加到您的书架。如果设置了默认分类，漫画将添加到该分类。之后您可以从在线源刷新元数据信息。</string>
+    <string name="pref_import_local_downloads_summary">扫描本地源并添加漫画到书架</string>
+    <string name="pref_import_local_downloads_description">这将扫描本地源目录并自动将所有找到的漫画添加到您的书架。如果设置了默认分类，漫画将添加到该分类。</string>
+    <string name="pref_import_local_downloads_add_to_default_category">添加到默认分类</string>
+    <string name="pref_import_local_downloads_add_to_default_category_summary">自动将导入的漫画添加到默认分类</string>
+    <string name="local_import_scanning">正在扫描本地源…</string>
+    <string name="local_import_importing">正在导入 %1$d / %2$d</string>
+    <string name="local_import_completed">导入完成！已导入：%1$d，已跳过：%2$d，错误：%3$d</string>
+    <string name="local_import_error">导入失败：%1$s</string>
     <string name="option_label_library_update_errors">库更新错误</string>
     <string name="label_library_update_errors">库更新错误 (%d)</string>
     <string name="info_empty_library_update_errors">您没有库更新错误。</string>

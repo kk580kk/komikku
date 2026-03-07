@@ -46,8 +46,13 @@ import tachiyomi.data.source.SourceRepositoryImpl
 import tachiyomi.data.source.StubSourceRepositoryImpl
 import tachiyomi.data.track.TrackRepositoryImpl
 import tachiyomi.data.updates.UpdatesRepositoryImpl
+import tachiyomi.data.local.LocalSourceRepositoryImpl
 import tachiyomi.domain.category.interactor.CreateCategoryWithName
 import tachiyomi.domain.category.interactor.DeleteCategory
+import tachiyomi.domain.local.interactor.GetLocalMangaDetails
+import tachiyomi.domain.local.interactor.LocalImportManager
+import tachiyomi.domain.local.interactor.ScanLocalSource
+import tachiyomi.domain.local.repository.LocalSourceRepository
 import tachiyomi.domain.category.interactor.GetCategories
 import tachiyomi.domain.category.interactor.HideCategory
 import tachiyomi.domain.category.interactor.RenameCategory
@@ -207,5 +212,21 @@ class DomainModule : InjektModule {
         addFactory { UpdateExtensionRepo(get(), get()) }
         addFactory { ToggleIncognito(get()) }
         addFactory { GetIncognitoState(get(), get(), get()) }
+
+        // Local import
+        addSingletonFactory<LocalSourceRepository> { LocalSourceRepositoryImpl(get(), get(), get()) }
+        addFactory { ScanLocalSource(get()) }
+        addFactory { GetLocalMangaDetails(get()) }
+        addFactory {
+            LocalImportManager(
+                getMangaByUrlAndSourceId = get(),
+                getCategories = get(),
+                setMangaCategories = get(),
+                mangaRepository = get(),
+                libraryPreferences = get(),
+                scanLocalSource = get(),
+                getLocalMangaDetails = get(),
+            )
+        }
     }
 }

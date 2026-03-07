@@ -11,9 +11,27 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Error
+import tachiyomi.presentation.core.components.LabeledCheckbox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -22,6 +40,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.LocalUriHandler
@@ -74,6 +93,7 @@ import exh.log.EHLogLevel
 import exh.pref.DelegateSourcePreferences
 import exh.source.ExhPreferences
 import exh.util.toAnnotatedString
+import tachiyomi.domain.local.interactor.LocalImportManager
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toImmutableMap
@@ -240,20 +260,42 @@ object SettingsAdvancedScreen : SearchableSettings {
     private fun getDataGroup(): Preference.PreferenceGroup {
         val context = LocalContext.current
         val navigator = LocalNavigator.currentOrThrow
+        val scope = rememberCoroutineScope()
+
+        // KMK -->
+        var showImportDialog by remember { mutableStateOf(false) }
+        val importManager = remember { Injekt.get<LocalImportManager>() }
+        var importState by remember { mutableStateOf<tachiyomi.domain.local.interactor.LocalImportManager.ImportState>(tachiyomi.domain.local.interactor.LocalImportManager.ImportState.Idle) }
+
+        LaunchedEffect(importManager) {
+            importManager.importState.collect { importState = it }
+        }
+
+        if (showImportDialog) {
+            LocalImportDialog(
+                importState = importState,
+                onDismiss = {
+                    showImportDialog = false
+                    importManager.reset()
+                },
+                onImport = { addToDefaultCategory ->
+                    scope.launch {
+                        importManager.importAll(addToDefaultCategory)
+                    }
+                },
+            )
+        }
+        // KMK <--
 
         return Preference.PreferenceGroup(
             title = stringResource(MR.strings.label_data),
             preferenceItems = persistentListOf(
                 // KMK -->
-                // KMK -->
-                // Temporarily disabled - local import feature needs more work
-                /*
                 Preference.PreferenceItem.TextPreference(
                     title = stringResource(KMR.strings.pref_import_local_downloads),
                     subtitle = stringResource(KMR.strings.pref_import_local_downloads_summary),
                     onClick = { showImportDialog = true },
                 ),
-                */
                 // KMK <--
                 Preference.PreferenceItem.TextPreference(
                     title = stringResource(MR.strings.pref_invalidate_download_cache),
@@ -886,6 +928,175 @@ object SettingsAdvancedScreen : SearchableSettings {
     // SY <--
 
     // KMK -->
-    // Local import feature temporarily disabled
+    @Composable
+    private fun LocalImportDialog(
+        importState: tachiyomi.domain.local.interactor.LocalImportManager.ImportState,
+        onDismiss: () -> Unit,
+        onImport: (Boolean) -> Unit,
+    ) {
+        var addToDefaultCategory by rememberSaveable { mutableStateOf(true) }
+
+        when (val state = importState) {
+            is tachiyomi.domain.local.interactor.LocalImportManager.ImportState.Idle -> {
+                AlertDialog(
+                    onDismissRequest = onDismiss,
+                    title = { Text(text = stringResource(KMR.strings.pref_import_local_downloads)) },
+                    text = {
+                        Column {
+                            Text(text = stringResource(KMR.strings.pref_import_local_downloads_description))
+                            Spacer(modifier = Modifier.height(16.dp))
+                            LabeledCheckbox(
+                                label = stringResource(KMR.strings.pref_import_local_downloads_add_to_default_category),
+                                checked = addToDefaultCategory,
+                                onCheckedChange = { addToDefaultCategory = it },
+                            )
+                            Text(
+                                text = stringResource(KMR.strings.pref_import_local_downloads_add_to_default_category_summary),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = onDismiss) {
+                            Text(text = stringResource(MR.strings.action_cancel))
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                onImport(addToDefaultCategory)
+                            },
+                        ) {
+                            Text(text = stringResource(MR.strings.action_start))
+                        }
+                    },
+                )
+            }
+            is tachiyomi.domain.local.interactor.LocalImportManager.ImportState.Scanning -> {
+                AlertDialog(
+                    onDismissRequest = onDismiss,
+                    title = { Text(text = stringResource(KMR.strings.pref_import_local_downloads)) },
+                    text = {
+                        Column {
+                            CircularProgressIndicator(modifier = Modifier.size(48.dp))
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(text = stringResource(KMR.strings.local_import_scanning))
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(onClick = onDismiss) {
+                            Text(text = stringResource(MR.strings.action_cancel))
+                        }
+                    },
+                )
+            }
+            is tachiyomi.domain.local.interactor.LocalImportManager.ImportState.Importing -> {
+                val progress = if (state.total > 0) {
+                    state.current.toFloat() / state.total
+                } else {
+                    0f
+                }
+                AlertDialog(
+                    onDismissRequest = onDismiss,
+                    title = { Text(text = stringResource(KMR.strings.pref_import_local_downloads)) },
+                    text = {
+                        Column {
+                            LinearProgressIndicator(
+                                progress = progress,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = stringResource(
+                                    KMR.strings.local_import_importing,
+                                    state.current,
+                                    state.total,
+                                ),
+                            )
+                            if (state.message.isNotEmpty()) {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = state.message,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(onClick = onDismiss) {
+                            Text(text = stringResource(MR.strings.action_cancel))
+                        }
+                    },
+                )
+            }
+            is tachiyomi.domain.local.interactor.LocalImportManager.ImportState.Completed -> {
+                AlertDialog(
+                    onDismissRequest = onDismiss,
+                    title = { Text(text = stringResource(KMR.strings.pref_import_local_downloads)) },
+                    text = {
+                        Column {
+                            Icon(
+                                imageVector = Icons.Default.CheckCircle,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(48.dp),
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = stringResource(
+                                    KMR.strings.local_import_completed,
+                                    state.imported,
+                                    state.skipped,
+                                    state.errorCount,
+                                ),
+                            )
+                            if (state.message.isNotEmpty()) {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = state.message,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(onClick = onDismiss) {
+                            Text(text = stringResource(MR.strings.action_ok))
+                        }
+                    },
+                )
+            }
+            is tachiyomi.domain.local.interactor.LocalImportManager.ImportState.Error -> {
+                AlertDialog(
+                    onDismissRequest = onDismiss,
+                    title = { Text(text = stringResource(KMR.strings.pref_import_local_downloads)) },
+                    text = {
+                        Column {
+                            Icon(
+                                imageVector = Icons.Default.Error,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.size(48.dp),
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = stringResource(KMR.strings.local_import_error, state.message),
+                            )
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(onClick = onDismiss) {
+                            Text(text = stringResource(MR.strings.action_ok))
+                        }
+                    },
+                )
+            }
+        }
+    }
     // KMK <--
 }

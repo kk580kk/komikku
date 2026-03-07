@@ -101,8 +101,14 @@
     <string name="pref_use_last_used_category_on_add">Use last used category</string>
     <string name="pref_use_last_used_category_on_add_description">Automatically use the last selected category when adding manga to library</string>
     <string name="pref_import_local_downloads">Import local downloads</string>
-    <string name="pref_import_local_downloads_summary">Scan download directory and add manga to library with metadata</string>
-    <string name="pref_import_local_downloads_description">This will scan the local download directory and automatically add all found manga to your library. Manga will be added to the default category if set. You can then refresh metadata from online sources.</string>
+    <string name="pref_import_local_downloads_summary">Scan local source and add manga to library</string>
+    <string name="pref_import_local_downloads_description">This will scan the local source directory and automatically add all found manga to your library. Manga will be added to the default category if set.</string>
+    <string name="pref_import_local_downloads_add_to_default_category">Add to default category</string>
+    <string name="pref_import_local_downloads_add_to_default_category_summary">Automatically add imported manga to the default category</string>
+    <string name="local_import_scanning">Scanning local source…</string>
+    <string name="local_import_importing">Importing %1$d / %2$d</string>
+    <string name="local_import_completed">Import completed! Imported: %1$d, Skipped: %2$d, Errors: %3$d</string>
+    <string name="local_import_error">Import failed: %1$s</string>
     <!-- Extension section -->
     <string name="extensions_page_need_refresh">Refresh extension page to update list.</string>
     <string name="extensions_page_more">More extensions...</string>

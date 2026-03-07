@@ -31,8 +31,10 @@ kotlin {
 
 dependencies {
     implementation(projects.sourceApi)
+    implementation(projects.sourceLocal)
     implementation(projects.domain)
     implementation(projects.core.common)
+    implementation(libs.unifile)
 
     api(libs.bundles.sqldelight)
 }
