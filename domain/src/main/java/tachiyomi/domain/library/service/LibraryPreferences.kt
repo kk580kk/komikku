@@ -75,6 +75,8 @@ class LibraryPreferences(
 
     // KMK -->
     fun syncOnAdd() = preferenceStore.getBoolean("sync_on_add", false)
+
+    fun useLastUsedCategoryOnAdd() = preferenceStore.getBoolean("use_last_used_category_on_add", false)
     // KMK <--
 
     fun showContinueReadingButton() = preferenceStore.getBoolean(

@@ -244,6 +244,17 @@ object SettingsAdvancedScreen : SearchableSettings {
         return Preference.PreferenceGroup(
             title = stringResource(MR.strings.label_data),
             preferenceItems = persistentListOf(
+                // KMK -->
+                // KMK -->
+                // Temporarily disabled - local import feature needs more work
+                /*
+                Preference.PreferenceItem.TextPreference(
+                    title = stringResource(KMR.strings.pref_import_local_downloads),
+                    subtitle = stringResource(KMR.strings.pref_import_local_downloads_summary),
+                    onClick = { showImportDialog = true },
+                ),
+                */
+                // KMK <--
                 Preference.PreferenceItem.TextPreference(
                     title = stringResource(MR.strings.pref_invalidate_download_cache),
                     subtitle = stringResource(MR.strings.pref_invalidate_download_cache_summary),
@@ -873,4 +884,8 @@ object SettingsAdvancedScreen : SearchableSettings {
 
     private var job: Job? = null
     // SY <--
+
+    // KMK -->
+    // Local import feature temporarily disabled
+    // KMK <--
 }

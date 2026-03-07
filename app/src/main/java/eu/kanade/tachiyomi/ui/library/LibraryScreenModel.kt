@@ -1420,21 +1420,34 @@ class LibraryScreenModel(
             // Hide the default category because it has a different behavior than the ones from db.
             // KMK -->
             val categories = state.value.libraryData.categories.fastFilter { it.id != 0L }
-            // KMK <--
-
+            
             // Get indexes of the common categories to preselect.
             val common = getCommonCategories(mangaList)
             // Get indexes of the mix categories to preselect.
             val mix = getMixCategories(mangaList)
+            
+            // KMK -->
+            // If no common categories and user enabled "use last used category", default to first category
+            val lastUsedCategoryId = libraryPreferences.lastUsedCategory().get().toLong()
             val preselected = categories
-                .fastMap {
-                    when (it) {
-                        in common -> CheckboxState.State.Checked(it)
-                        in mix -> CheckboxState.TriState.Exclude(it)
-                        else -> CheckboxState.State.None(it)
+                .fastMap { category ->
+                    when {
+                        // Already in common categories
+                        category in common -> CheckboxState.State.Checked(category)
+                        // In mix categories
+                        category in mix -> CheckboxState.TriState.Exclude(category)
+                        // Default to first category or last used category if enabled
+                        libraryPreferences.useLastUsedCategoryOnAdd().get() && category.id == lastUsedCategoryId -> 
+                            CheckboxState.State.Checked(category)
+                        // Default to first category if no other selection
+                        categories.isNotEmpty() && category == categories.first() && common.isEmpty() && mix.isEmpty() ->
+                            CheckboxState.State.Checked(category)
+                        else -> CheckboxState.State.None(category)
                     }
                 }
                 .toImmutableList()
+            // KMK <--
+            
             mutableState.update { it.copy(dialog = Dialog.ChangeCategory(mangaList, preselected)) }
         }
     }

@@ -102,6 +102,11 @@
     <string name="pref_panorama_cover_flow_summary">在全局搜索和建议中显示全景封面</string>
     <string name="pref_auto_sync_progress_from_trackers">从 Tracker 自动同步进度</string>
     <string name="sync_progress_from_trackers_up_to_chapter">从 Trackers 同步到第 %d 章</string>
+    <string name="pref_use_last_used_category_on_add">使用上次使用的分类</string>
+    <string name="pref_use_last_used_category_on_add_description">添加漫画到书架时自动使用上次选择的分类</string>
+    <string name="pref_import_local_downloads">导入本地下载</string>
+    <string name="pref_import_local_downloads_summary">扫描下载目录并添加漫画到书架（保留元数据）</string>
+    <string name="pref_import_local_downloads_description">这将扫描本地下载目录并自动将所有找到的漫画添加到您的书架。如果设置了默认分类，漫画将添加到该分类。之后您可以从在线源刷新元数据信息。</string>
     <string name="option_label_library_update_errors">库更新错误</string>
     <string name="label_library_update_errors">库更新错误 (%d)</string>
     <string name="info_empty_library_update_errors">您没有库更新错误。</string>
