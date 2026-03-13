@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Error
+import eu.kanade.tachiyomi.util.system.ImportNotificationHelper
 import tachiyomi.presentation.core.components.LabeledCheckbox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -267,9 +268,37 @@ object SettingsAdvancedScreen : SearchableSettings {
         val importManager = remember { Injekt.get<LocalImportManager>() }
         var importState by remember { mutableStateOf<tachiyomi.domain.local.interactor.LocalImportManager.ImportState>(tachiyomi.domain.local.interactor.LocalImportManager.ImportState.Idle) }
 
+        // KMK -->: Import notification helper
+        val notificationHelper = remember { ImportNotificationHelper(context) }
+        
         LaunchedEffect(importManager) {
-            importManager.importState.collect { importState = it }
+            importManager.importState.collect { state ->
+                importState = state
+                // KMK -->: Show progress and completion notifications for background import
+                when (state) {
+                    is tachiyomi.domain.local.interactor.LocalImportManager.ImportState.Importing -> {
+                        if (!showImportDialog) { // Background mode
+                            notificationHelper.showLocalImportProgress(
+                                current = state.current,
+                                total = state.total,
+                                mangaName = state.message.substringAfterLast('/').take(50),
+                            )
+                        }
+                    }
+                    is tachiyomi.domain.local.interactor.LocalImportManager.ImportState.Completed -> {
+                        if (!showImportDialog) { // Background mode
+                            notificationHelper.showLocalImportComplete(
+                                state.imported,
+                                state.skipped,
+                                state.errorCount,
+                            )
+                        }
+                    }
+                    else -> {}
+                }
+            }
         }
+        // KMK <--
 
         if (showImportDialog) {
             LocalImportDialog(
@@ -278,9 +307,9 @@ object SettingsAdvancedScreen : SearchableSettings {
                     showImportDialog = false
                     importManager.reset()
                 },
-                onImport = { addToDefaultCategory ->
+                onImport = { addToDefaultCategory, background ->
                     scope.launch {
-                        importManager.importAll(addToDefaultCategory)
+                        importManager.importAll(addToDefaultCategory, background)
                     }
                 },
             )
@@ -932,7 +961,7 @@ object SettingsAdvancedScreen : SearchableSettings {
     private fun LocalImportDialog(
         importState: tachiyomi.domain.local.interactor.LocalImportManager.ImportState,
         onDismiss: () -> Unit,
-        onImport: (Boolean) -> Unit,
+        onImport: (Boolean, Boolean) -> Unit, // addToDefaultCategory, background
     ) {
         var addToDefaultCategory by rememberSaveable { mutableStateOf(true) }
 
@@ -963,12 +992,24 @@ object SettingsAdvancedScreen : SearchableSettings {
                         }
                     },
                     confirmButton = {
-                        TextButton(
-                            onClick = {
-                                onImport(addToDefaultCategory)
-                            },
-                        ) {
-                            Text(text = stringResource(MR.strings.action_start))
+                        Column {
+                            // KMK -->: Add background import button - dismiss dialog first so notification shows when complete
+                            TextButton(
+                                onClick = {
+                                    onDismiss()
+                                    onImport(addToDefaultCategory, true)
+                                },
+                            ) {
+                                Text(text = stringResource(KMR.strings.local_import_background))
+                            }
+                            TextButton(
+                                onClick = {
+                                    onImport(addToDefaultCategory, false)
+                                },
+                            ) {
+                                Text(text = stringResource(MR.strings.action_start))
+                            }
+                            // KMK <--
                         }
                     },
                 )

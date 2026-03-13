@@ -75,6 +75,7 @@ fun MoreScreen(
     onClickSettings: () -> Unit,
     onClickAbout: () -> Unit,
     onClickBatchAdd: () -> Unit,
+    onClickAutoImport: () -> Unit,
     onClickUpdates: () -> Unit,
     onClickHistory: () -> Unit,
     // KMK -->
@@ -208,6 +209,14 @@ fun MoreScreen(
                         title = stringResource(SYMR.strings.eh_batch_add),
                         icon = Icons.AutoMirrored.Outlined.PlaylistAdd,
                         onPreferenceClick = onClickBatchAdd,
+                    )
+                }
+                item {
+                    TextPreferenceWidget(
+                        title = stringResource(KMR.strings.auto_import),
+                        subtitle = stringResource(KMR.strings.auto_import_description),
+                        icon = Icons.AutoMirrored.Outlined.PlaylistAdd,
+                        onPreferenceClick = onClickAutoImport,
                     )
                 }
             }

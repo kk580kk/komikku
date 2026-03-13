@@ -393,6 +393,28 @@ actual class LocalSource(
         chapters
     }
 
+    /**
+     * Extract cover from the first CBZ/archive in the manga directory (first image in archive).
+     * Used during local import when no ComicInfo or existing cover is available.
+     * @param mangaDirPath Path like "downloads/E-Hentai (ZH)/MangaName" or "MangaName"
+     * @return URI string of the saved cover, or null if extraction fails
+     */
+    fun extractCoverFromFirstArchive(mangaDirPath: String): String? {
+        return try {
+            val mangaDir = fileSystem.getMangaDirectory(mangaDirPath) ?: return null
+            val firstArchive = fileSystem.getFilesInMangaDirectory(mangaDirPath)
+                .filter { it.isFile && Archive.isSupported(it) }
+                .minByOrNull { it.name.orEmpty() }
+                ?: return null
+            val manga = SManga.create().apply { url = mangaDirPath }
+            val chapter = SChapter.create().apply { url = "$mangaDirPath/${firstArchive.name}" }
+            updateCover(chapter, manga)?.uri?.toString()
+        } catch (e: Throwable) {
+            logcat(LogPriority.ERROR, e) { "Error extracting cover from first archive for $mangaDirPath" }
+            null
+        }
+    }
+
     // Filters
     override fun getFilterList() = FilterList(OrderBy.Popular(context))
 
@@ -401,10 +423,17 @@ actual class LocalSource(
 
     fun getFormat(chapter: SChapter): Format {
         try {
-            val (mangaDirName, chapterName) = chapter.url.split('/', limit = 2)
-            return fileSystem.getBaseDirectory()
-                ?.findFile(mangaDirName)
-                ?.findFile(chapterName)
+            // chapter.url format: "downloads/E-Hentai (ZH)/MangaName/ChapterName" or "MangaName/ChapterName"
+            val pathParts = chapter.url.split('/')
+            val chapterName = pathParts.last()
+            val mangaPath = pathParts.dropLast(1).joinToString("/")
+            
+            // Use getMangaDirectory which supports nested paths like "downloads/E-Hentai (ZH)/MangaName"
+            val mangaDir = fileSystem.getMangaDirectory(mangaPath)
+                ?: throw Exception(context.stringResource(MR.strings.chapter_not_found))
+            
+            return mangaDir
+                .findFile(chapterName)
                 ?.let(Format.Companion::valueOf)
                 ?: throw Exception(context.stringResource(MR.strings.chapter_not_found))
         } catch (e: Format.UnknownFormatException) {

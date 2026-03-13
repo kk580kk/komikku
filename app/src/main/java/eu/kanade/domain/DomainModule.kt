@@ -226,6 +226,7 @@ class DomainModule : InjektModule {
                 libraryPreferences = get(),
                 scanLocalSource = get(),
                 getLocalMangaDetails = get(),
+                localSourceRepository = get(),
             )
         }
     }
