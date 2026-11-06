@@ -1,44 +1,48 @@
 import { AbilityConstant, ConfigurationConstant, UIAbility, Want } from '@kit.AbilityKit';
-import { hilog } from '@kit.PerformanceAnalysisKit';
 import { window } from '@kit.ArkUI';
+import { AppContext } from '../service/AppContext';
+import { Database } from '../data/Database';
+import { Seed } from '../data/Seed';
+import { Logger } from '../util/Logger';
 
-const DOMAIN = 0x0000;
+const TAG: string = 'app';
 
 export default class EntryAbility extends UIAbility {
   onCreate(want: Want, launchParam: AbilityConstant.LaunchParam): void {
     this.context.getApplicationContext().setColorMode(ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET);
-    hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onCreate');
+    AppContext.set(this.context);
+    Logger.info(TAG, 'ability onCreate');
+
+    // 数据库在后台初始化，页面侧通过仓储懒等待同一个初始化 Promise。
+    Database.init(this.context)
+      .then((store) => Seed.ensure(store))
+      .then(() => Logger.info(TAG, 'database ready'))
+      .catch((err: Error) => Logger.error(TAG, 'database init failed: %{public}s', err.message));
   }
 
   onDestroy(): void {
-    hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onDestroy');
+    Logger.info(TAG, 'ability onDestroy');
   }
 
   onWindowStageCreate(windowStage: window.WindowStage): void {
-    // Main window is created, set main page for this ability
-    hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onWindowStageCreate');
-
     windowStage.loadContent('pages/Index', (err) => {
       if (err.code) {
-        hilog.error(DOMAIN, 'testTag', 'Failed to load the content. Cause: %{public}s', JSON.stringify(err));
+        Logger.error(TAG, 'load content failed: %{public}s', JSON.stringify(err));
         return;
       }
-      hilog.info(DOMAIN, 'testTag', 'Succeeded in loading the content.');
+      Logger.info(TAG, 'content loaded');
     });
   }
 
   onWindowStageDestroy(): void {
-    // Main window is destroyed, release UI related resources
-    hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onWindowStageDestroy');
+    Logger.info(TAG, 'window stage destroyed');
   }
 
   onForeground(): void {
-    // Ability has brought to foreground
-    hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onForeground');
+    Logger.info(TAG, 'ability onForeground');
   }
 
   onBackground(): void {
-    // Ability has back to background
-    hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onBackground');
+    Logger.info(TAG, 'ability onBackground');
   }
 }

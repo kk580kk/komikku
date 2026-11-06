@@ -24,6 +24,7 @@
 | [DATA_MODEL.md](DATA_MODEL.md) | RDB 表结构、迁移策略、仓储接口 |
 | [ROADMAP.md](ROADMAP.md) | M0–M5 任务拆解、DoD、进度看板 |
 | [ENGINEERING.md](ENGINEERING.md) | 分支/提交/代码规范、构建、测试、CI、发布 |
+| [TESTING.md](TESTING.md) | 手工测试清单（按里程碑） |
 
 ---
 

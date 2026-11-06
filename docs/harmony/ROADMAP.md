@@ -15,14 +15,16 @@
 
 ## M1 · 数据层（1 周）
 
-| 任务 | 说明 |
-|---|---|
-| M1-1 | `Database.ets`：RDB 初始化、版本迁移、外键开启 |
-| M1-2 | schema v1 建表（mangas / chapters / categories / mangas_categories / history） |
-| M1-3 | `MangaRepository` / `ChapterRepository` / `CategoryRepository` |
-| M1-4 | 首次启动种子数据（6 本漫画，便于验证 UI） |
-| M1-5 | 书架、详情页改接真库（去掉 Mock） |
-| M1-6 | 分类筛选 + 标题搜索 |
+| 任务 | 说明 | 状态 |
+|---|---|---|
+| M1-1 | `Database.ets`：RDB 初始化、版本迁移、外键开启 | ✅ |
+| M1-2 | schema v1 建表（mangas / chapters / categories / mangas_categories / history） | ✅ |
+| M1-3 | `MangaRepository` / `ChapterRepository`（CategoryRepository 待 M5 需要时再加） | ✅ |
+| M1-4 | 首次启动种子数据（6 本漫画 × 20 话） | ✅ |
+| M1-5 | 书架、详情页改接真库（去掉 Mock），加入/移出书架 | ✅ |
+| M1-6 | 标题搜索 | ✅ |
+| M1-7 | 分类筛选 | ⬜ 随 M5 分类管理一起做 |
+| M1-8 | 仓储单测（依赖设备，随 M2 的 ohosTest 一起） | ⬜ |
 
 **DoD**：
 - 重启应用数据不丢；书架按 `favorite=1` 读取
@@ -99,7 +101,7 @@ M0 ✅ → M1 → M2 → M3 → M4 → M5
 | 里程碑 | 状态 | 备注 |
 |---|---|---|
 | M0 | ✅ 完成 | 2026-11-06 |
-| M1 | 🚧 进行中 | 数据层落地 |
+| M1 | 🚧 基本完成 | 数据层 + 搜索 + 收藏切换已落地，待真机验证与单测 |
 | M2 | ⬜ 未开始 | |
 | M3 | ⬜ 未开始 | |
 | M4 | ⬜ 未开始 | |
