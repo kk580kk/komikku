@@ -21,30 +21,29 @@
 | 阅读器（长条、进度落库、章节切换） | ✅ |
 | 下载与离线阅读（断点续传） | ✅ |
 | 设置页（缓存/下载清理） | ✅ |
-| 缩放、后台任务、通知进度 | ⬜ |
+| 缩放（双击/双指） | ✅ |
+| 后台下载任务、通知进度 | ⬜ |
 
 ## 目录
 
 ```
 harmonyApp/
-├── AppScope/
-│   ├── app.json5                 # bundleName / 版本 / 图标
-│   └── resources/base/...
-├── entry/
-│   ├── build-profile.json5
-│   └── src/main/
-│       ├── module.json5          # Ability、权限（INTERNET）
-│       ├── ets/
-│       │   ├── entryability/EntryAbility.ets
-│       │   ├── pages/Index.ets           # 三 Tab 主框架 + 书架
-│       │   ├── pages/MangaDetailPage.ets # 详情 + 章节列表
-│       │   ├── model/Manga.ets           # Manga / Chapter / 路由参数
-│       │   └── data/LibraryRepository.ets# Mock 数据源（M1 换 RDB）
-│       └── resources/
-│           └── base/profile/main_pages.json
-├── build-profile.json5
-├── hvigorfile.ts
-└── build.sh                      # 本机 CLI 构建脚本
+├── AppScope/                     # bundleName / 版本 / 图标
+├── entry/src/main/
+│   ├── module.json5              # Ability、INTERNET 权限
+│   ├── ets/
+│   │   ├── entryability/         # 应用入口（初始化 DB/种子）
+│   │   ├── pages/                # Index / MangaDetailPage / ReaderPage / SettingsPage
+│   │   ├── components/           # MangaCover
+│   │   ├── domain/               # GetLibrary / GetMangaDetail / GetChapterPages / AddToLibrary / DownloadChapter …
+│   │   ├── data/                 # Database / MangaRepository / ChapterRepository / DownloadRepository / Mapper / Seed
+│   │   ├── source/               # Source 契约 + SourceRegistry + mangadex/
+│   │   ├── service/              # Http / ImageLoader / Downloader / AppContext
+│   │   ├── model/                # Manga / Chapter / Page 等
+│   │   └── util/                 # Logger / Result
+│   └── resources/base/profile/main_pages.json
+├── build.sh                      # 复用 DevEco 自带 Node + JBR 构建
+└── README.md
 ```
 
 ## 构建

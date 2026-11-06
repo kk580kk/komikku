@@ -25,6 +25,7 @@
 | [ROADMAP.md](ROADMAP.md) | M0–M5 任务拆解、DoD、进度看板 |
 | [ENGINEERING.md](ENGINEERING.md) | 分支/提交/代码规范、构建、测试、CI、发布 |
 | [TESTING.md](TESTING.md) | 手工测试清单（按里程碑） |
+| [DEMO.md](DEMO.md) | 5 分钟演示脚本（P0 动线 + 边界说明） |
 | [ACP_INTEGRATION.md](ACP_INTEGRATION.md) | 用 DevEco Code（ACP）执行开发步骤的方式与坑 |
 
 ---
