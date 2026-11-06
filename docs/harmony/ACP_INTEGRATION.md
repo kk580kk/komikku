@@ -59,3 +59,17 @@ python3 tools/acp/deveco_acp.py --cwd harmonyApp --timeout 900 \
 3. agent 默认在 `--cwd` 内工作；`harmonyApp` 是独立工程，必须把 cwd 指到它，否则看不到 `entry/`。
 4. `deveco` 快照功能会在工程里跑 git 命令，偶发 `failed to remove snapshot files` 警告，不影响结果。
 5. 不要把 `deveco` 当构建工具：编译仍用 `./build.sh`（`hvigorw` + DevEco 自带 JBR）。
+
+## 6. 实测吞吐（2026-11-06 本机）
+
+| 任务 | 产出 | 耗时 | 备注 |
+|---|---|---|---|
+| `service/Http.ets` | 84 行 | ≈20 min | 第 1 次超时（15 min，仍在翻 SDK `.d.ts`） |
+| `source/mangadex/MangaDexSource.ets` | 314 行 | ≈28 min | 给了确切接口与 DTO 形状后一次通过 |
+
+经验：
+
+1. **给足事实**（API 签名、返回 JSON 形状、字段映射）能显著减少它翻 SDK 的时间；不给事实时它会去读 `.d.ts`，容易超时。
+2. "完成后跑 `./build.sh`，报错自己修" 有效：两次都是它自己修到编译通过。
+3. 它**会改职责外的文件**：本次为了解锁编译，顺手修了 `domain/AddToLibrary.ets` 的构造参数错位。必须 `git diff` 复核每个被改文件。
+4. 单文件 20–30 分钟，串行做 M2 不划算；建议按文件拆成独立任务**并行多个 ACP 会话**，再统一 review + build。
