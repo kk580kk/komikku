@@ -78,8 +78,12 @@ struct ReaderPage {
   @State currentIndex: number = 0;
   @State barsVisible: boolean = true;
   @State pageWidth: number = 1080;
+  @State hasPrev: boolean = false;
+  @State hasNext: boolean = false;
 
   private chapterId: number = 0;
+  private prevChapterId: number = 0;
+  private nextChapterId: number = 0;
   private chapter: Chapter | undefined = undefined;
   private manga: Manga | undefined = undefined;
   private getChapterPages: GetChapterPages = new GetChapterPages();
@@ -113,10 +117,36 @@ struct ReaderPage {
       this.pages = result.data.pages.map((p) => p.imageUrl);
       this.currentIndex = Math.min(result.data.chapter.lastPageRead, Math.max(this.pages.length - 1, 0));
       Logger.info('reader', 'loaded pages=%{public}d', this.pages.length);
+      await this.loadSiblings(result.data.chapter.mangaId, result.data.chapter.id);
     } else {
       this.errorMessage = result.error !== undefined ? result.error.message : '加载失败';
     }
     this.loading = false;
+  }
+
+  /** 章节按 source_order 升序排列，上一话 = 前一个元素。 */
+  private async loadSiblings(mangaId: number, currentId: number): Promise<void> {
+    const result = await this.chapterRepo.byManga(mangaId);
+    if (!result.ok || result.data === undefined) {
+      return;
+    }
+    // 按话数升序排，保证「上一话」是更小的话数（与详情页的展示顺序无关）
+    const ordered: Chapter[] = result.data.slice().sort((a: Chapter, b: Chapter) => a.chapterNumber - b.chapterNumber);
+    const index: number = ordered.findIndex((c: Chapter) => c.id === currentId);
+    if (index < 0) {
+      return;
+    }
+    this.prevChapterId = index > 0 ? ordered[index - 1].id : 0;
+    this.nextChapterId = index < ordered.length - 1 ? ordered[index + 1].id : 0;
+    this.hasPrev = this.prevChapterId > 0;
+    this.hasNext = this.nextChapterId > 0;
+  }
+
+  private openChapter(targetId: number): void {
+    if (targetId <= 0) {
+      return;
+    }
+    router.replaceUrl({ url: 'pages/ReaderPage', params: new ReaderParams(targetId) });
   }
 
   private onScrollIndex(first: number): void {
@@ -177,15 +207,23 @@ struct ReaderPage {
         .fontSize(12)
         .height(30)
         .backgroundColor('#33FFFFFF')
+        .fontColor(this.hasPrev ? '#FFFFFF' : '#66FFFFFF')
         .layoutWeight(1)
-        .enabled(false)
+        .enabled(this.hasPrev)
+        .onClick(() => {
+          this.openChapter(this.prevChapterId);
+        })
       Button('下一话')
         .fontSize(12)
         .height(30)
         .backgroundColor('#33FFFFFF')
+        .fontColor(this.hasNext ? '#FFFFFF' : '#66FFFFFF')
         .layoutWeight(1)
         .margin({ left: 10 })
-        .enabled(false)
+        .enabled(this.hasNext)
+        .onClick(() => {
+          this.openChapter(this.nextChapterId);
+        })
     }
     .width('100%')
     .padding({ left: 12, right: 12, top: 8, bottom: 8 })
