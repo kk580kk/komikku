@@ -76,6 +76,8 @@ class LibraryPreferences(
     // KMK -->
     fun fetchMetadataOnAdd() = preferenceStore.getBoolean("fetch_metadata_on_add", false)
     fun fetchChaptersOnAdd() = preferenceStore.getBoolean("fetch_chapters_on_add", false)
+
+    fun useLastUsedCategoryOnAdd() = preferenceStore.getBoolean("use_last_used_category_on_add", false)
     // KMK <--
 
     fun showContinueReadingButton() = preferenceStore.getBoolean(

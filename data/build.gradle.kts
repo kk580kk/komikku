@@ -31,8 +31,10 @@ kotlin {
 
 dependencies {
     implementation(projects.sourceApi)
+    implementation(projects.sourceLocal)
     implementation(projects.domain)
     implementation(projects.core.common)
+    implementation(libs.unifile)
 
     implementation(kotlinx.serialization.json)
     implementation(kotlinx.serialization.json.okio)

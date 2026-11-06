@@ -77,6 +77,7 @@ class AppModule(val app: Application) : InjektModule {
 
     override fun InjektRegistrar.registerInjectables() {
         addSingleton(app)
+        addSingleton<android.content.Context>(app)
 
         addSingletonFactory<SqlDriver> {
             // SY -->
@@ -187,6 +188,10 @@ class AppModule(val app: Application) : InjektModule {
         addSingletonFactory { LocalSourceFileSystem(get()) }
         addSingletonFactory { LocalCoverManager(app, get()) }
         addSingletonFactory { StorageManager(app, get()) }
+        addSingletonFactory {
+            val sourcePreferences = uy.kohesive.injekt.Injekt.get<eu.kanade.domain.source.service.SourcePreferences>()
+            tachiyomi.source.local.LocalSource(app, get(), get(), sourcePreferences.allowLocalSourceHiddenFolders()::get)
+        }
 
         // SY -->
         addSingletonFactory { EHentaiUpdateHelper(app) }

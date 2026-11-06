@@ -847,6 +847,21 @@ class MangaScreenModel(
                         moveMangaToCategory(defaultCategory)
                     }
 
+                    // Use last used category if preference is enabled
+                    libraryPreferences.useLastUsedCategoryOnAdd().get() -> {
+                        val lastUsedCategoryId = libraryPreferences.lastUsedCategory().get().toLong()
+                        val lastUsedCategory = categories.find { it.id == lastUsedCategoryId }
+                        if (lastUsedCategory != null) {
+                            val result = updateManga.awaitUpdateFavorite(manga.id, true)
+                            if (!result) return@launchIO
+                            moveMangaToCategory(lastUsedCategory)
+                        } else {
+                            val result = updateManga.awaitUpdateFavorite(manga.id, true)
+                            if (!result) return@launchIO
+                            moveMangaToCategory(null)
+                        }
+                    }
+
                     // Automatic 'Default' or no categories
                     defaultCategoryId == 0L || categories.isEmpty() -> {
                         val result = updateManga.awaitUpdateFavorite(manga.id, true)
@@ -992,6 +1007,10 @@ class MangaScreenModel(
     private fun moveMangaToCategory(categoryIds: List<Long>) {
         screenModelScope.launchIO {
             setMangaCategories.await(mangaId, categoryIds)
+            // Save last used category for future additions
+            if (categoryIds.isNotEmpty()) {
+                libraryPreferences.lastUsedCategory().set(categoryIds.first().toInt())
+            }
         }
     }
 

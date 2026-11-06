@@ -302,6 +302,11 @@ object SettingsLibraryScreen : SearchableSettings {
                     title = stringResource(KMR.strings.pref_fetch_manga_chapters_on_add),
                     subtitle = stringResource(KMR.strings.pref_fetch_manga_chapters_on_add_description),
                 ),
+                Preference.PreferenceItem.SwitchPreference(
+                    preference = libraryPreferences.useLastUsedCategoryOnAdd(),
+                    title = stringResource(KMR.strings.pref_use_last_used_category_on_add),
+                    subtitle = stringResource(KMR.strings.pref_use_last_used_category_on_add_description),
+                ),
                 // KMK <--
             ),
         )

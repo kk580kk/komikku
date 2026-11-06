@@ -4,6 +4,9 @@
 .kotlin
 build
 
+# IDE / Editor
+.cursor
+
 # IDE files
 *.iml
 .idea/*
