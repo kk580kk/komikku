@@ -2,6 +2,7 @@ import { promptAction, router } from '@kit.ArkUI';
 import { GetMangaDetail } from '../domain/GetMangaDetail';
 import { ToggleFavorite } from '../domain/ToggleFavorite';
 import { Chapter, Manga, MangaDetail, MangaDetailParams } from '../model/Manga';
+import { ReaderParams } from './ReaderPage';
 import { Logger } from '../util/Logger';
 
 @Entry
@@ -22,6 +23,13 @@ struct MangaDetailPage {
     const params = router.getParams() as MangaDetailParams;
     this.mangaId = params.mangaId;
     this.load();
+  }
+
+  onPageShow(): void {
+    // 从阅读器返回后刷新已读状态
+    if (this.mangaId > 0) {
+      this.load();
+    }
   }
 
   private async load(): Promise<void> {
@@ -82,7 +90,7 @@ struct MangaDetailPage {
     .width('100%')
     .padding({ left: 16, right: 16, top: 12, bottom: 12 })
     .onClick(() => {
-      promptAction.showToast({ message: `阅读器待实现（M3）：${chapter.name}` });
+      router.pushUrl({ url: 'pages/ReaderPage', params: new ReaderParams(chapter.id) });
     })
   }
 

@@ -29,3 +29,4 @@ harmonyApp/oh_modules/
 harmonyApp/local.properties
 harmonyApp/**/.preview/
 harmonyApp/.idea/
+harmonyApp/.cache/

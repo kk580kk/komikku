@@ -14,6 +14,27 @@ import { mapChapterRow } from './Mapper';
  * 不能被一次刷新覆盖掉。
  */
 export class ChapterRepository {
+  async byId(chapterId: number): Promise<Result<Chapter>> {
+    try {
+      const rs: relationalStore.ResultSet = await (await Database.init(AppContext.require())).querySql(
+        'SELECT * FROM chapters WHERE _id = ? LIMIT 1',
+        [chapterId]
+      );
+      let chapter: Chapter | undefined = undefined;
+      if (rs.goToFirstRow()) {
+        chapter = mapChapterRow(rs);
+      }
+      rs.close();
+      if (chapter === undefined) {
+        return fail<Chapter>(AppError.storage('章节不存在: ' + chapterId));
+      }
+      return ok<Chapter>(chapter);
+    } catch (e) {
+      Logger.error('data', 'byId failed: %{public}s', JSON.stringify(e));
+      return fail<Chapter>(AppError.storage('读取章节失败'));
+    }
+  }
+
   async byManga(mangaId: number): Promise<Result<Chapter[]>> {
     try {
       const rs: relationalStore.ResultSet = await (await Database.init(AppContext.require())).querySql(
