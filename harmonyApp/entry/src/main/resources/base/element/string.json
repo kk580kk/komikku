@@ -1,0 +1,16 @@
+{
+  "string": [
+    {
+      "name": "module_desc",
+      "value": "Komikku HarmonyOS entry module"
+    },
+    {
+      "name": "EntryAbility_desc",
+      "value": "Komikku"
+    },
+    {
+      "name": "EntryAbility_label",
+      "value": "Komikku"
+    }
+  ]
+}

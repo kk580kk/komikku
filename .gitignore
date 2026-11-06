@@ -21,3 +21,11 @@ local.properties
 /app/google-services.json
 *.jks
 app/standard/preview/*
+
+# HarmonyOS / DevEco Studio
+harmonyApp/.hvigor/
+harmonyApp/**/build/
+harmonyApp/oh_modules/
+harmonyApp/local.properties
+harmonyApp/**/.preview/
+harmonyApp/.idea/
