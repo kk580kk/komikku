@@ -64,6 +64,24 @@ export class ImageLoader {
     return decoded;
   }
 
+  /** 本地文件（已下载章节）走同一套内存缓存与采样解码。 */
+  async loadFile(path: string, targetWidth: number): Promise<Result<image.PixelMap>> {
+    const cached: image.PixelMap | undefined = this.memory.get(path);
+    if (cached !== undefined) {
+      this.touch(path);
+      return ok<image.PixelMap>(cached);
+    }
+    const buf: ArrayBuffer | undefined = this.readDisk(path);
+    if (buf === undefined) {
+      return fail<image.PixelMap>(AppError.storage('本地图片缺失'));
+    }
+    const decoded: Result<image.PixelMap> = await this.decode(path, buf, targetWidth);
+    if (decoded.ok && decoded.data !== undefined) {
+      this.putMemory(path, decoded.data);
+    }
+    return decoded;
+  }
+
   async clearMemory(): Promise<void> {
     this.memory.forEach((pm: image.PixelMap) => {
       pm.release();

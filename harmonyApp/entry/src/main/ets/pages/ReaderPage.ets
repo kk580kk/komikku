@@ -1,6 +1,8 @@
 import { display, promptAction, router } from '@kit.ArkUI';
 import { image } from '@kit.ImageKit';
 import { GetChapterPages } from '../domain/GetChapterPages';
+import { DownloadChapter } from '../domain/DownloadChapter';
+import { Downloader } from '../service/Downloader';
 import { ChapterRepository } from '../data/ChapterRepository';
 import { Chapter, Manga } from '../model/Manga';
 import { ImageLoader } from '../service/ImageLoader';
@@ -19,6 +21,7 @@ export class ReaderParams {
 @Component
 struct ReaderPageImage {
   @Prop url: string = '';
+  @Prop localPath: string = '';
   @Prop targetWidth: number = 1080;
   @State pixelMap: image.PixelMap | undefined = undefined;
   @State failed: boolean = false;
@@ -29,7 +32,9 @@ struct ReaderPageImage {
 
   private async load(): Promise<void> {
     this.failed = false;
-    const result = await ImageLoader.get().load(this.url, this.targetWidth);
+    const result = this.localPath.length > 0
+      ? await ImageLoader.get().loadFile(this.localPath, this.targetWidth)
+      : await ImageLoader.get().load(this.url, this.targetWidth);
     if (result.ok && result.data !== undefined) {
       this.pixelMap = result.data;
     } else {
@@ -80,6 +85,10 @@ struct ReaderPage {
   @State pageWidth: number = 1080;
   @State hasPrev: boolean = false;
   @State hasNext: boolean = false;
+  @State localPaths: string[] = [];
+  @State downloaded: boolean = false;
+  @State downloading: boolean = false;
+  @State downloadText: string = '';
 
   private chapterId: number = 0;
   private prevChapterId: number = 0;
@@ -87,6 +96,7 @@ struct ReaderPage {
   private chapter: Chapter | undefined = undefined;
   private manga: Manga | undefined = undefined;
   private getChapterPages: GetChapterPages = new GetChapterPages();
+  private downloadChapter: DownloadChapter = new DownloadChapter();
   private chapterRepo: ChapterRepository = new ChapterRepository();
   private lastSavedIndex: number = -1;
   private saveTimer: number = -1;
@@ -118,6 +128,10 @@ struct ReaderPage {
       this.currentIndex = Math.min(result.data.chapter.lastPageRead, Math.max(this.pages.length - 1, 0));
       Logger.info('reader', 'loaded pages=%{public}d', this.pages.length);
       await this.loadSiblings(result.data.chapter.mangaId, result.data.chapter.id);
+      const locals: string[] = Downloader.get().localPages(
+        result.data.manga.id, result.data.chapter.id, result.data.pages.length);
+      this.localPaths = locals;
+      this.downloaded = locals.length === result.data.pages.length && locals.length > 0;
     } else {
       this.errorMessage = result.error !== undefined ? result.error.message : '加载失败';
     }
@@ -147,6 +161,30 @@ struct ReaderPage {
       return;
     }
     router.replaceUrl({ url: 'pages/ReaderPage', params: new ReaderParams(targetId) });
+  }
+
+  private async startDownload(): Promise<void> {
+    if (this.downloading || this.downloaded) {
+      return;
+    }
+    this.downloading = true;
+    this.downloadText = '下载中…';
+    const result = await this.downloadChapter.execute(this.chapterId, (done: number, total: number) => {
+      this.downloadText = '下载 ' + done + '/' + total;
+    });
+    this.downloading = false;
+    this.downloadText = '';
+    if (result.ok) {
+      this.downloaded = true;
+      if (this.manga !== undefined && this.chapter !== undefined) {
+        this.localPaths = Downloader.get().localPages(this.manga.id, this.chapter.id, this.pages.length);
+      }
+      promptAction.showToast({ message: '下载完成，可离线阅读' });
+    } else {
+      const message: string = result.error !== undefined ? result.error.message : '下载失败';
+      promptAction.showToast({ message: message });
+      Logger.error('reader', 'download failed: %{public}s', message);
+    }
   }
 
   private onScrollIndex(first: number): void {
@@ -191,6 +229,13 @@ struct ReaderPage {
         .layoutWeight(1)
         .textAlign(TextAlign.Center)
       Blank()
+      Text(this.downloading ? this.downloadText : (this.downloaded ? '已下载' : '下载'))
+        .fontSize(13)
+        .fontColor(this.downloaded ? '#8FE3A0' : '#FFFFFF')
+        .margin({ right: 12 })
+        .onClick(() => {
+          this.startDownload();
+        })
       Text(`${this.currentIndex + 1}/${this.pages.length}`)
         .fontSize(13)
         .fontColor('#FFFFFF')
@@ -255,7 +300,11 @@ struct ReaderPage {
         List() {
           ForEach(this.pages, (url: string, index: number) => {
             ListItem() {
-              ReaderPageImage({ url: url, targetWidth: this.pageWidth })
+              ReaderPageImage({
+                url: url,
+                localPath: index < this.localPaths.length ? this.localPaths[index] : '',
+                targetWidth: this.pageWidth
+              })
             }
           }, (url: string) => url)
         }

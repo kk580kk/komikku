@@ -2,6 +2,7 @@
   "src": [
     "pages/Index",
     "pages/MangaDetailPage",
-    "pages/ReaderPage"
+    "pages/ReaderPage",
+    "pages/SettingsPage"
   ]
 }

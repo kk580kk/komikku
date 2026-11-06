@@ -5,7 +5,7 @@ import { Logger } from '../util/Logger';
 const DB_NAME: string = 'komikku.db';
 
 /** schema 版本。每次改表结构 +1，并在 Database.migrate 里补一段升级脚本。 */
-export const DB_VERSION: number = 1;
+export const DB_VERSION: number = 2;
 
 const SCHEMA_V1: string[] = [
   `CREATE TABLE IF NOT EXISTS mangas (
@@ -63,6 +63,19 @@ const SCHEMA_V1: string[] = [
   `INSERT OR IGNORE INTO categories(_id, name, sort) VALUES (0, '', -1)`,
 ];
 
+const SCHEMA_V2: string[] = [
+  `CREATE TABLE IF NOT EXISTS downloads (
+     chapter_id  INTEGER PRIMARY KEY,
+     manga_id    INTEGER NOT NULL,
+     status      INTEGER NOT NULL DEFAULT 0,
+     pages_total INTEGER NOT NULL DEFAULT 0,
+     pages_done  INTEGER NOT NULL DEFAULT 0,
+     created_at  INTEGER NOT NULL,
+     updated_at  INTEGER NOT NULL
+   )`,
+  `CREATE INDEX IF NOT EXISTS idx_downloads_manga ON downloads(manga_id)`,
+];
+
 /**
  * RDB 单例。
  *
@@ -98,17 +111,16 @@ export class Database {
   }
 
   private static async migrate(store: relationalStore.RdbStore): Promise<void> {
-    if (store.version === 0) {
-      for (const sql of SCHEMA_V1) {
+    const scripts: Array<Array<string>> = [SCHEMA_V1, SCHEMA_V2];
+    let version: number = store.version;
+    while (version < DB_VERSION) {
+      const script: Array<string> = scripts[version];
+      for (const sql of script) {
         await store.executeSql(sql);
       }
-      store.version = 1;
-      Logger.info('data', 'schema created at v1');
-      return;
-    }
-    if (store.version < DB_VERSION) {
-      // v2 起的升级脚本在这里按版本追加，禁止修改已发布脚本。
-      Logger.warn('data', 'no migration script for version=%{public}d', store.version);
+      version++;
+      store.version = version;
+      Logger.info('data', 'migrated schema to v%{public}d', version);
     }
   }
 
