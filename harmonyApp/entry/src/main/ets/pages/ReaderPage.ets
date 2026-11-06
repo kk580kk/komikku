@@ -25,6 +25,8 @@ struct ReaderPageImage {
   @Prop targetWidth: number = 1080;
   @State pixelMap: image.PixelMap | undefined = undefined;
   @State failed: boolean = false;
+  @State zoom: number = 1;
+  private baseZoom: number = 1;
 
   aboutToAppear(): void {
     this.load();
@@ -50,6 +52,23 @@ struct ReaderPageImage {
           .width('100%')
           .objectFit(ImageFit.Contain)
           .draggable(false)
+          .scale({ x: this.zoom, y: this.zoom })
+          .gesture(
+            GestureGroup(
+              GestureMode.Exclusive,
+              TapGesture({ count: 2 }).onAction(() => {
+                this.zoom = this.zoom > 1 ? 1 : 2;
+              }),
+              PinchGesture({ fingers: 2 })
+                .onActionStart(() => {
+                  this.baseZoom = this.zoom;
+                })
+                .onActionUpdate((event: GestureEvent) => {
+                  const next: number = this.baseZoom * event.scale;
+                  this.zoom = Math.min(3, Math.max(1, next));
+                })
+            )
+          )
       } else if (this.failed) {
         Column() {
           Text('图片加载失败').fontSize(12).fontColor('#8A8A8E')

@@ -3,6 +3,7 @@ import { GetMangaDetail } from '../domain/GetMangaDetail';
 import { ToggleFavorite } from '../domain/ToggleFavorite';
 import { Chapter, Manga, MangaDetail, MangaDetailParams } from '../model/Manga';
 import { ReaderParams } from './ReaderPage';
+import { MangaCover } from '../components/MangaCover';
 import { Logger } from '../util/Logger';
 
 @Entry
@@ -99,19 +100,12 @@ struct MangaDetailPage {
     Scroll() {
       Column() {
         Row() {
-          Stack() {
-            Text(this.manga !== undefined ? this.manga.title.substring(0, 1) : '?')
-              .fontSize(44)
-              .fontColor('#FFFFFF')
-              .fontWeight(FontWeight.Bold)
-          }
-          .width(100)
-          .height(140)
-          .borderRadius(10)
-          .linearGradient({
-            angle: 135,
-            colors: [['#5B8DEF', 0.0], ['#2B2B33', 1.0]]
+          MangaCover({
+            thumbnailUrl: this.manga !== undefined ? this.manga.thumbnailUrl : '',
+            title: this.manga !== undefined ? this.manga.title : '',
+            targetWidth: 300
           })
+            .width(100)
 
           Column() {
             Text(this.manga !== undefined ? this.manga.title : '')

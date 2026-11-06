@@ -3,6 +3,7 @@ import { AddToLibrary } from '../domain/AddToLibrary';
 import { FetchPopular } from '../domain/FetchPopular';
 import { SearchManga } from '../domain/SearchManga';
 import { SManga } from '../source/Source';
+import { MangaCover } from '../components/MangaCover';
 import { GetLibrary } from '../domain/GetLibrary';
 import { LibraryEntry, MangaDetailParams } from '../model/Manga';
 import { Logger } from '../util/Logger';
@@ -122,18 +123,10 @@ struct Index {
   mangaCard(entry: LibraryEntry, index: number) {
     Column() {
       Stack({ alignContent: Alignment.TopEnd }) {
-        Stack() {
-          Text(entry.manga.title.substring(0, 1))
-            .fontSize(40)
-            .fontColor('#FFFFFF')
-            .fontWeight(FontWeight.Bold)
-        }
-        .width('100%')
-        .aspectRatio(0.72)
-        .borderRadius(10)
-        .linearGradient({
-          angle: 135,
-          colors: [[this.coverColors[index % this.coverColors.length], 0.0], ['#2B2B33', 1.0]]
+        MangaCover({
+          thumbnailUrl: entry.manga.thumbnailUrl,
+          title: entry.manga.title,
+          colorIndex: index
         })
 
         if (entry.unreadCount > 0) {
